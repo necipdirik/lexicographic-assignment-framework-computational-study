@@ -1,0 +1,37 @@
+MODEL:
+
+SETS:
+    RES / r1, r2, r3 /;
+    NODE / n1, n2, n3 /;
+
+    RESNODE(RES,NODE): D, E;
+    NODEATTR(NODE): AVUL;
+ENDSETS
+
+DATA:
+    D =
+    1 1 0
+    1 0 1
+    0 1 1;
+
+    AVUL =
+    0
+    1
+    1;
+ENDDATA
+
+MAX = @SUM(RESNODE(i,j): AVUL(j) * D(i,j) * E(i,j));
+
+@FOR(NODE(j):
+    @SUM(RES(i): D(i,j) * E(i,j)) <= 1
+);
+
+@FOR(RES(i):
+    @SUM(NODE(j): D(i,j) * E(i,j)) <= 1
+);
+
+@FOR(RESNODE(i,j):
+    @BIN(E(i,j))
+);
+
+END

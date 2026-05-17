@@ -1,0 +1,66 @@
+MODEL:
+
+SETS:
+    RES / r1, r2, r3 /;
+    NODE / n1, n2, n3 /;
+
+    RESNODE(RES,NODE): D, E, P, V;
+    NODEATTR(NODE): ACRIT, AVUL;
+ENDSETS
+
+DATA:
+    D =
+    1 1 0
+    1 0 1
+    0 1 1;
+
+    P =
+    1 0 0
+    0 0 1
+    0 1 0;
+
+    ACRIT =
+    1
+    0
+    0;
+
+    AVUL =
+    0
+    1
+    1;
+ENDDATA
+
+@FOR(RESNODE(i,j):
+    V(i,j) = ACRIT(j) + AVUL(j) + P(i,j) + 1
+);
+
+MAX =
+    @SUM(RESNODE(i,j): V(i,j) * D(i,j) * E(i,j))
+    - 2 * SCRIT
+    - 1 * SVUL;
+
+@FOR(NODE(j):
+    @SUM(RES(i): D(i,j) * E(i,j)) <= 1
+);
+
+@FOR(RES(i):
+    @SUM(NODE(j): D(i,j) * E(i,j)) <= 1
+);
+
+! F = 1;
+@SUM(RESNODE(i,j): ACRIT(j) * D(i,j) * E(i,j)) >= 1;
+
+! T_critical = 1;
+@SUM(RESNODE(i,j): ACRIT(j) * D(i,j) * E(i,j)) + SCRIT >= 1;
+
+! T_vulnerable = 2;
+@SUM(RESNODE(i,j): AVUL(j) * D(i,j) * E(i,j)) + SVUL >= 2;
+
+@FOR(RESNODE(i,j):
+    @BIN(E(i,j))
+);
+
+SCRIT >= 0;
+SVUL >= 0;
+
+END
