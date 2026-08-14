@@ -15,15 +15,15 @@ def load_ieee33_data():
     net = pn.case33bw()
 
     # Demand nodes are represented by load buses.
-    J = sorted(set(int(b) for b in net.load.bus.values))
+    N = sorted(set(int(b) for b in net.load.bus.values))
 
     # Node values are based on real active load demand.
     node_value = {}
-    for j in J:
+    for j in N:
         demand = float(net.load.loc[net.load.bus == j, "p_mw"].sum())
         node_value[j] = demand
 
-    return net, J, node_value
+    return net, N, node_value
 
 
 # =========================================================
@@ -35,15 +35,15 @@ def load_ieee57_data():
     net = pn.case57()
 
     # Demand nodes are represented by load buses.
-    J = sorted(set(int(b) for b in net.load.bus.values))
+    N = sorted(set(int(b) for b in net.load.bus.values))
 
     # Node values are based on real active load demand.
     node_value = {}
-    for j in J:
+    for j in N:
         demand = float(net.load.loc[net.load.bus == j, "p_mw"].sum())
         node_value[j] = demand
 
-    return net, J, node_value
+    return net, N, node_value
 
 
 # =========================================================
@@ -53,317 +53,564 @@ def load_ieee118_data():
     """Load the IEEE 118-bus system and extract demand-node values."""
     net = pn.case118()
 
-    J = sorted(set(int(b) for b in net.load.bus.values))
+    N = sorted(set(int(b) for b in net.load.bus.values))
 
     node_value = {}
-    for j in J:
+    for j in N:
         demand = float(net.load.loc[net.load.bus == j, "p_mw"].sum())
         node_value[j] = demand
 
-    return net, J, node_value
+    return net, N, node_value
 
 # =========================================================
 # SCENARIO GENERATION
 # =========================================================
 def generate_scenario(
-    J,
+    N,
     seed=42,
     num_resources=7,
-    critical_count=5,
-    vulnerable_count=5,
-    feasibility_prob=0.45,
+    highest_priority_count=5,
+    secondary_class_counts=None,
+    availability_prob=0.45,
 ):
-    """Generate resources, priority node groups, and feasible assignment pairs."""
-    random.seed(seed)
+    """Generate resources, priority-node groups, and available assignment pairs."""
+
+    if secondary_class_counts is None:
+        secondary_class_counts = {
+            "class_1": 5,
+            "class_2": 5,
+            "class_3": 5,
+        }
+
+    rng = random.Random(seed)
 
     R = list(range(num_resources))
 
-    critical_nodes = set(random.sample(J, critical_count))
+    # H: highest-priority demand nodes.
+    H = set(rng.sample(N, highest_priority_count))
 
-    remaining_nodes = [j for j in J if j not in critical_nodes]
-    vulnerable_nodes = set(random.sample(remaining_nodes, vulnerable_count))
+    # C: secondary priority classes.
+    C = list(secondary_class_counts.keys())
 
-    feasible_pairs = []
+    # Keep H separate from secondary priority classes.
+    secondary_candidates = [
+        n
+        for n in N
+        if n not in H
+    ]
+
+    class_nodes = {}
+
+    # Secondary priority classes may overlap.
+    for c in C:
+        class_count = secondary_class_counts[c]
+
+        class_nodes[c] = set(
+            rng.sample(
+                secondary_candidates,
+                class_count,
+            )
+        )
+
+    # Available resource-demand node pairs.
+    available_pairs = []
 
     for r in R:
-        for j in J:
-            if random.random() < feasibility_prob:
-                feasible_pairs.append((r, j))
+        for n in N:
+            if rng.random() < availability_prob:
+                available_pairs.append((r, n))
 
-    # Ensure every demand node has at least one feasible resource.
-    for j in J:
-        if not any(j == jj for _, jj in feasible_pairs):
-            feasible_pairs.append((random.choice(R), j))
+    # Ensure that every demand node has at least one available resource.
+    for n in N:
+        if not any(nn == n for _, nn in available_pairs):
+            available_pairs.append((rng.choice(R), n))
 
-    feasible_pairs = sorted(set(feasible_pairs))
+    available_pairs = sorted(set(available_pairs))
 
-    return R, critical_nodes, vulnerable_nodes, feasible_pairs
-
+    return (
+        R,
+        H,
+        C,
+        class_nodes,
+        available_pairs,
+    )
 
 # =========================================================
 # SHARED MODEL HELPERS
 # =========================================================
-def add_assignment_constraints(model, x, feasible_pairs, R, J):
+def add_assignment_constraints(model, x, available_pairs, R, N):
     """Add one-to-one assignment constraints for resources and demand nodes."""
+
+    # Each resource can be assigned to at most one demand node.
     for r in R:
         model.addConstr(
-            gp.quicksum(x[r, j] for rr, j in feasible_pairs if rr == r) <= 1,
+            gp.quicksum(
+                x[r, n]
+                for rr, n in available_pairs
+                if rr == r
+            )
+            <= 1,
             name=f"resource_{r}",
         )
 
-    for j in J:
+    # Each demand node can receive at most one resource.
+    for n in N:
         model.addConstr(
-            gp.quicksum(x[r, j] for r, jj in feasible_pairs if jj == j) <= 1,
-            name=f"node_{j}",
+            gp.quicksum(
+                x[r, n]
+                for r, nn in available_pairs
+                if nn == n
+            )
+            <= 1,
+            name=f"node_{n}",
         )
 
 
 def collect_solution(
     x,
-    feasible_pairs,
-    node_value,
-    critical_nodes,
-    vulnerable_nodes,
-    model_name,
-    slack_var=None,
+    available_pairs,
+    assignment_value,
+    H,
+    C,
+    class_nodes,
+    formulation_name,
+    slack_vars=None,
 ):
-    """Collect assignment results and performance metrics from a solved model."""
-    selected = [(r, j) for (r, j) in feasible_pairs if x[r, j].X > 0.5]
+    """Collect assignment results and performance metrics from a solved formulation."""
 
-    total_value = sum(node_value[j] for (_, j) in selected)
-    critical_covered = sum(1 for (_, j) in selected if j in critical_nodes)
-    vulnerable_covered = sum(1 for (_, j) in selected if j in vulnerable_nodes)
-    slack_value = slack_var.X if slack_var is not None else 0.0
+    selected_pairs = [
+        (r, n)
+        for r, n in available_pairs
+        if x[r, n].X > 0.5
+    ]
 
-    return {
-        "model": model_name,
-        "assignments": len(selected),
-        "value": total_value,
-        "critical_covered": critical_covered,
-        "vulnerable_covered": vulnerable_covered,
-        "slack": slack_value,
-        "selected_pairs": selected,
+    total_assignment_value = sum(
+        assignment_value[r, n]
+        for r, n in selected_pairs
+    )
+
+    highest_priority_covered = sum(
+        1
+        for _, n in selected_pairs
+        if n in H
+    )
+
+    secondary_priority_covered = {
+        c: sum(
+            1
+            for _, n in selected_pairs
+            if n in class_nodes[c]
+        )
+        for c in C
     }
 
-def solve_subproblem_1(R, J, feasible_pairs, critical_nodes):
-    """Solve Sub-problem 1 and return F: maximum critical-node coverage."""
-    m = gp.Model("subproblem_1")
-    m.Params.OutputFlag = 0
+    slack_values = (
+        {
+            c: slack_vars[c].X
+            for c in C
+        }
+        if slack_vars is not None
+        else {
+            c: 0.0
+            for c in C
+        }
+    )
 
-    x = m.addVars(feasible_pairs, vtype=GRB.BINARY, name="x")
+    return {
+        "formulation": formulation_name,
+        "assignments": len(selected_pairs),
+        "assignment_value": total_assignment_value,
+        "highest_priority_covered": highest_priority_covered,
+        "secondary_priority_covered": secondary_priority_covered,
+        "slack": slack_values,
+        "selected_pairs": selected_pairs,
+    }
 
-    add_assignment_constraints(m, x, feasible_pairs, R, J)
+# =========================================================
+# SUB-PROBLEM 1
+# =========================================================
+def solve_subproblem_1(R, N, available_pairs, H):
+    """Return M_H: maximum coverage of highest-priority demand nodes."""
 
-    m.setObjective(
-        gp.quicksum(x[r, j] for (r, j) in feasible_pairs if j in critical_nodes),
+    model = gp.Model("subproblem_1")
+    model.Params.OutputFlag = 0
+
+    x = model.addVars(
+        available_pairs,
+        vtype=GRB.BINARY,
+        name="x",
+    )
+
+    add_assignment_constraints(
+        model,
+        x,
+        available_pairs,
+        R,
+        N,
+    )
+
+    model.setObjective(
+        gp.quicksum(
+            x[r, n]
+            for r, n in available_pairs
+            if n in H
+        ),
         GRB.MAXIMIZE,
     )
 
-    m.optimize()
+    model.optimize()
 
-    if m.Status != GRB.OPTIMAL:
+    if model.Status != GRB.OPTIMAL:
+        model.dispose()
         return None
 
-    return int(round(m.ObjVal))
+    M_H = int(round(model.ObjVal))
 
+    model.dispose()
 
-def solve_subproblem_2(R, J, feasible_pairs, vulnerable_nodes):
-    """Solve Sub-problem 2 and return T_v: maximum vulnerable-node coverage."""
-    m = gp.Model("subproblem_2")
-    m.Params.OutputFlag = 0
-
-    x = m.addVars(feasible_pairs, vtype=GRB.BINARY, name="x")
-
-    add_assignment_constraints(m, x, feasible_pairs, R, J)
-
-    m.setObjective(
-        gp.quicksum(x[r, j] for (r, j) in feasible_pairs if j in vulnerable_nodes),
-        GRB.MAXIMIZE,
-    )
-
-    m.optimize()
-
-    if m.Status != GRB.OPTIMAL:
-        return None
-
-    return int(round(m.ObjVal))
+    return M_H
 
 
 # =========================================================
-# QUANTITY MODEL
+# SUB-PROBLEM 2
 # =========================================================
-import time
-
-def solve_quantity_model(
+def solve_subproblem_2(
     R,
-    J,
-    feasible_pairs,
-    node_value,
-    critical_nodes,
-    vulnerable_nodes,
-    F,
-    T_v,
+    N,
+    available_pairs,
+    C,
+    class_nodes,
 ):
-    """Solve the Quantity model, preserving F and maximizing total assignments."""
-    m_qty = gp.Model("quantity_model")
-    m_qty.Params.OutputFlag = 0
+    """Return M_c for each secondary priority class c in C."""
 
-    x_qty = m_qty.addVars(feasible_pairs, vtype=GRB.BINARY, name="x")
+    M_c = {}
 
-    add_assignment_constraints(m_qty, x_qty, feasible_pairs, R, J)
+    for c in C:
+        model = gp.Model(f"subproblem_2_{c}")
+        model.Params.OutputFlag = 0
 
-    m_qty.addConstr(
-        gp.quicksum(x_qty[r, j] for (r, j) in feasible_pairs if j in critical_nodes)
-        >= F,
-        name="critical_protection_F",
+        x = model.addVars(
+            available_pairs,
+            vtype=GRB.BINARY,
+            name="x",
+        )
+
+        add_assignment_constraints(
+            model,
+            x,
+            available_pairs,
+            R,
+            N,
+        )
+
+        model.setObjective(
+            gp.quicksum(
+                x[r, n]
+                for r, n in available_pairs
+                if n in class_nodes[c]
+            ),
+            GRB.MAXIMIZE,
+        )
+
+        model.optimize()
+
+        if model.Status != GRB.OPTIMAL:
+            model.dispose()
+            return None
+
+        M_c[c] = int(round(model.ObjVal))
+
+        model.dispose()
+
+    return M_c
+
+
+# =========================================================
+# QUANTITY FORMULATION
+# =========================================================
+def solve_quantity_formulation(
+    R,
+    N,
+    available_pairs,
+    assignment_value,
+    H,
+    C,
+    class_nodes,
+    M_H,
+    M_c,
+    penalty_weights,
+):
+    """
+    Maximize the total number of assignments while preserving the
+    highest-priority result and penalizing deviations from M_c
+    for each secondary priority class c in C.
+    """
+
+    model = gp.Model("quantity_formulation")
+    model.Params.OutputFlag = 0
+
+    x = model.addVars(
+        available_pairs,
+        vtype=GRB.BINARY,
+        name="x",
     )
 
-    m_qty.setObjective(
-        gp.quicksum(x_qty[r, j] for (r, j) in feasible_pairs),
+    s = model.addVars(
+        C,
+        lb=0.0,
+        vtype=GRB.CONTINUOUS,
+        name="s",
+    )
+
+    add_assignment_constraints(
+        model,
+        x,
+        available_pairs,
+        R,
+        N,
+    )
+
+    model.addConstr(
+        gp.quicksum(
+            x[r, n]
+            for r, n in available_pairs
+            if n in H
+        )
+        >= M_H,
+        name="highest_priority_protection",
+    )
+
+    for c in C:
+        model.addConstr(
+            gp.quicksum(
+                x[r, n]
+                for r, n in available_pairs
+                if n in class_nodes[c]
+            )
+            + s[c]
+            >= M_c[c],
+            name=f"secondary_priority_protection_{c}",
+        )
+
+    model.setObjective(
+        gp.quicksum(
+            x[r, n]
+            for r, n in available_pairs
+        )
+        - gp.quicksum(
+            penalty_weights[c] * s[c]
+            for c in C
+        ),
         GRB.MAXIMIZE,
     )
 
-    start = time.time()
-    m_qty.optimize()
-    end = time.time()
-    solve_time = end - start
+    start_time = time.time()
+    model.optimize()
+    solve_time = time.time() - start_time
 
-    if m_qty.Status != GRB.OPTIMAL:
+    if model.Status != GRB.OPTIMAL:
+        model.dispose()
         return None
 
     result = collect_solution(
-        x_qty,
-        feasible_pairs,
-        node_value,
-        critical_nodes,
-        vulnerable_nodes,
+        x,
+        available_pairs,
+        assignment_value,
+        H,
+        C,
+        class_nodes,
         "Quantity",
+        s,
     )
 
     result["solve_time"] = solve_time
-    result["F"] = F
-    result["T_v"] = T_v
+    result["M_H"] = M_H
+    result["M_c"] = M_c
+
+    model.dispose()
 
     return result
 
-
 # =========================================================
-# QUALITY MODEL
+# QUALITY FORMULATION
 # =========================================================
-def solve_quality_model(
+def solve_quality_formulation(
     R,
-    J,
-    feasible_pairs,
-    node_value,
-    critical_nodes,
-    vulnerable_nodes,
-    F,
-    T_v,
-    quantity_assignments,
-    penalty_weight=0.50,
+    N,
+    available_pairs,
+    assignment_value,
+    H,
+    C,
+    class_nodes,
+    M_H,
+    M_c,
+    maximum_assignments,
+    penalty_weights,
 ):
-    """Solve the Quality model using F, T_v, and the assignment count M."""
-    m_qual = gp.Model("quality_model")
-    m_qual.Params.OutputFlag = 0
+    """
+    Maximize total assignment value while preserving the maximum
+    assignment count and the priority-protection levels.
+    """
 
-    x_qual = m_qual.addVars(feasible_pairs, vtype=GRB.BINARY, name="x")
-    s_qual = m_qual.addVar(lb=0.0, vtype=GRB.CONTINUOUS, name="s_vulnerable")
+    model = gp.Model("quality_formulation")
+    model.Params.OutputFlag = 0
 
-    add_assignment_constraints(m_qual, x_qual, feasible_pairs, R, J)
-
-    m_qual.addConstr(
-        gp.quicksum(x_qual[r, j] for (r, j) in feasible_pairs) == quantity_assignments,
-        name="same_assignment_count_M",
+    x = model.addVars(
+        available_pairs,
+        vtype=GRB.BINARY,
+        name="x",
     )
 
-    m_qual.addConstr(
-        gp.quicksum(x_qual[r, j] for (r, j) in feasible_pairs if j in critical_nodes)
-        >= F,
-        name="critical_protection_F",
+    s = model.addVars(
+        C,
+        lb=0.0,
+        vtype=GRB.CONTINUOUS,
+        name="s",
     )
 
-    m_qual.addConstr(
-        gp.quicksum(x_qual[r, j] for (r, j) in feasible_pairs if j in vulnerable_nodes)
-        + s_qual
-        >= T_v,
-        name="vulnerable_soft_protection_Tv",
+    add_assignment_constraints(
+        model,
+        x,
+        available_pairs,
+        R,
+        N,
     )
 
-    m_qual.setObjective(
-        gp.quicksum(node_value[j] * x_qual[r, j] for (r, j) in feasible_pairs)
-        - penalty_weight * s_qual,
+    model.addConstr(
+        gp.quicksum(
+            x[r, n]
+            for r, n in available_pairs
+        )
+        == maximum_assignments,
+        name="maximum_assignment_count",
+    )
+
+    model.addConstr(
+        gp.quicksum(
+            x[r, n]
+            for r, n in available_pairs
+            if n in H
+        )
+        >= M_H,
+        name="highest_priority_protection",
+    )
+
+    for c in C:
+        model.addConstr(
+            gp.quicksum(
+                x[r, n]
+                for r, n in available_pairs
+                if n in class_nodes[c]
+            )
+            + s[c]
+            >= M_c[c],
+            name=f"secondary_priority_protection_{c}",
+        )
+
+    model.setObjective(
+        gp.quicksum(
+            assignment_value[r, n] * x[r, n]
+            for r, n in available_pairs
+        )
+        - gp.quicksum(
+            penalty_weights[c] * s[c]
+            for c in C
+        ),
         GRB.MAXIMIZE,
     )
 
-    start = time.time()
-    m_qual.optimize()
-    end = time.time()
-    solve_time = end - start
+    start_time = time.time()
+    model.optimize()
+    solve_time = time.time() - start_time
 
-    if m_qual.Status != GRB.OPTIMAL:
+    if model.Status != GRB.OPTIMAL:
+        model.dispose()
         return None
 
     result = collect_solution(
-        x_qual,
-        feasible_pairs,
-        node_value,
-        critical_nodes,
-        vulnerable_nodes,
+        x,
+        available_pairs,
+        assignment_value,
+        H,
+        C,
+        class_nodes,
         "Quality",
-        s_qual,
+        s,
     )
 
     result["solve_time"] = solve_time
-    result["F"] = F
-    result["T_v"] = T_v
+    result["M_H"] = M_H
+    result["M_c"] = M_c
+    result["maximum_assignments"] = maximum_assignments
+    result["objective_value"] = model.ObjVal
+
+    model.dispose()
 
     return result
 
 # =========================================================
-# PURE WEIGHTED MODEL
+# WEIGHTED FORMULATION
 # =========================================================
-def solve_pure_weighted_model(
+def solve_weighted_formulation(
     R,
-    J,
-    feasible_pairs,
-    node_value,
-    critical_nodes,
-    vulnerable_nodes,
+    N,
+    available_pairs,
+    assignment_value,
+    H,
+    C,
+    class_nodes,
 ):
-    """Solve the Pure Weighted model without explicit priority protection."""
-    m_w = gp.Model("pure_weighted_model")
-    m_w.Params.OutputFlag = 0
+    """Maximize total assignment value without explicit priority protection."""
 
-    x_w = m_w.addVars(feasible_pairs, vtype=GRB.BINARY, name="x")
+    model = gp.Model("weighted_formulation")
+    model.Params.OutputFlag = 0
 
-    add_assignment_constraints(m_w, x_w, feasible_pairs, R, J)
+    x = model.addVars(
+        available_pairs,
+        vtype=GRB.BINARY,
+        name="x",
+    )
 
-    m_w.setObjective(
-        gp.quicksum(node_value[j] * x_w[r, j] for (r, j) in feasible_pairs),
+    add_assignment_constraints(
+        model,
+        x,
+        available_pairs,
+        R,
+        N,
+    )
+
+    model.setObjective(
+        gp.quicksum(
+            assignment_value[r, n] * x[r, n]
+            for r, n in available_pairs
+        ),
         GRB.MAXIMIZE,
     )
 
-    start = time.time()
-    m_w.optimize()
-    end = time.time()
-    solve_time = end - start
+    start_time = time.time()
+    model.optimize()
+    solve_time = time.time() - start_time
 
-    if m_w.Status != GRB.OPTIMAL:
+    if model.Status != GRB.OPTIMAL:
+        model.dispose()
         return None
 
     result = collect_solution(
-    x_w,
-    feasible_pairs,
-    node_value,
-    critical_nodes,
-    vulnerable_nodes,
-    "Pure Weighted",
-)
+        x,
+        available_pairs,
+        assignment_value,
+        H,
+        C,
+        class_nodes,
+        "Weighted",
+    )
 
     result["solve_time"] = solve_time
+    result["objective_value"] = model.ObjVal
+
+    model.dispose()
 
     return result
-
 
 # =========================================================
 # SINGLE SCENARIO RUNNER
@@ -371,96 +618,200 @@ def solve_pure_weighted_model(
 def run_single_scenario(
     seed,
     num_resources=7,
-    critical_count=5,
-    vulnerable_count=5,
-    feasibility_prob=0.45,
+    highest_priority_count=5,
+    secondary_class_counts=None,
+    availability_prob=0.45,
+    suitability_prob=0.50,
+    penalty_weight=0.5,
     network="33",
 ):
-    """Run Quantity, Quality, and Pure Weighted models for one generated scenario."""
-    if network == "33":
-        _, J, node_value = load_ieee33_data()
-    elif network == "57":
-        _, J, node_value = load_ieee57_data()
-    elif network == "118":
-        _, J, node_value = load_ieee118_data()
-    else:
-        raise ValueError(f"Unsupported network type: {network}")
+    """
+    Run Quantity, Quality, and Weighted formulations
+    for one generated scenario.
+    """
 
-    R, critical_nodes, vulnerable_nodes, feasible_pairs = generate_scenario(
-        J,
+    if network == "33":
+        _, N, _ = load_ieee33_data()
+    elif network == "57":
+        _, N, _ = load_ieee57_data()
+    elif network == "118":
+        _, N, _ = load_ieee118_data()
+    else:
+        raise ValueError(
+            f"Unsupported network type: {network}"
+        )
+
+    (
+        R,
+        H,
+        C,
+        class_nodes,
+        available_pairs,
+    ) = generate_scenario(
+        N,
         seed=seed,
         num_resources=num_resources,
-        critical_count=critical_count,
-        vulnerable_count=vulnerable_count,
-        feasibility_prob=feasibility_prob,
+        highest_priority_count=highest_priority_count,
+        secondary_class_counts=secondary_class_counts,
+        availability_prob=availability_prob,
     )
 
-    F = solve_subproblem_1(R, J, feasible_pairs, critical_nodes)
-    T_v = solve_subproblem_2(R, J, feasible_pairs, vulnerable_nodes)
+    # One penalty weight for each secondary priority class.
+    penalty_weights = {
+        c: penalty_weight
+        for c in C
+    }
 
-    if F is None or T_v is None:
+    # Binary suitability matrix generated independently
+    # for all resource-node pairs.
+    suitability_rng = random.Random(seed + 1)
+
+    suitability = {
+        (r, n): int(
+            suitability_rng.random() < suitability_prob
+        )
+        for r in R
+        for n in N
+    }
+
+    # Assignment value:
+    # v_(r,n) = sum_c b_(n,c) + s_(r,n) + 1
+    assignment_value = {
+        (r, n): (
+            sum(
+                1
+                for c in C
+                if n in class_nodes[c]
+            )
+            + suitability[r, n]
+            + 1
+        )
+        for r, n in available_pairs
+    }
+
+    M_H = solve_subproblem_1(
+        R,
+        N,
+        available_pairs,
+        H,
+    )
+
+    M_c = solve_subproblem_2(
+        R,
+        N,
+        available_pairs,
+        C,
+        class_nodes,
+    )
+
+    if M_H is None or M_c is None:
         return {
             "seed": seed,
+            "network": network,
+            "num_resources": num_resources,
+            "availability_prob": availability_prob,
+            "suitability_prob": suitability_prob,
             "status": "infeasible",
             "quantity": None,
             "quality": None,
             "weighted": None,
         }
 
-    qty = solve_quantity_model(
+    qty = solve_quantity_formulation(
         R,
-        J,
-        feasible_pairs,
-        node_value,
-        critical_nodes,
-        vulnerable_nodes,
-        F,
-        T_v,
+        N,
+        available_pairs,
+        assignment_value,
+        H,
+        C,
+        class_nodes,
+        M_H,
+        M_c,
+        penalty_weights,
     )
 
     if qty is None:
         return {
             "seed": seed,
+            "network": network,
+            "num_resources": num_resources,
+            "availability_prob": availability_prob,
+            "suitability_prob": suitability_prob,
             "status": "infeasible",
             "quantity": None,
             "quality": None,
             "weighted": None,
         }
 
-    qual = solve_quality_model(
+    qual = solve_quality_formulation(
         R,
-        J,
-        feasible_pairs,
-        node_value,
-        critical_nodes,
-        vulnerable_nodes,
-        F,
-        T_v,
+        N,
+        available_pairs,
+        assignment_value,
+        H,
+        C,
+        class_nodes,
+        M_H,
+        M_c,
         qty["assignments"],
+        penalty_weights,
     )
 
     if qual is None:
         return {
             "seed": seed,
+            "network": network,
+            "num_resources": num_resources,
+            "availability_prob": availability_prob,
+            "suitability_prob": suitability_prob,
             "status": "infeasible",
             "quantity": qty,
             "quality": None,
             "weighted": None,
         }
 
-    weighted = solve_pure_weighted_model(
+    weighted = solve_weighted_formulation(
         R,
-        J,
-        feasible_pairs,
-        node_value,
-        critical_nodes,
-        vulnerable_nodes,
+        N,
+        available_pairs,
+        assignment_value,
+        H,
+        C,
+        class_nodes,
     )
+
+    if weighted is None:
+        return {
+            "seed": seed,
+            "network": network,
+            "num_resources": num_resources,
+            "availability_prob": availability_prob,
+            "suitability_prob": suitability_prob,
+            "status": "infeasible",
+            "quantity": qty,
+            "quality": qual,
+            "weighted": None,
+        }
 
     return {
         "seed": seed,
+        "network": network,
+        "num_resources": num_resources,
+        "availability_prob": availability_prob,
+        "suitability_prob": suitability_prob,
         "status": "optimal",
         "quantity": qty,
         "quality": qual,
         "weighted": weighted,
     }
+
+# =========================================================
+# TEMPORARY CHECK
+# =========================================================
+
+if __name__ == "__main__":
+    _, N33, _ = load_ieee33_data()
+    _, N118, _ = load_ieee118_data()
+
+    print("IEEE 33 demand nodes:", len(N33))
+    print("IEEE 118 demand nodes:", len(N118))

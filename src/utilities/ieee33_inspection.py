@@ -1,8 +1,10 @@
 import pandapower.networks as pn
 
+
 net = pn.case33bw()
 
-print("=== BASIC INFO ===")
+
+print("=== IEEE 33-BUS BASIC INFO ===")
 print("Number of buses:", len(net.bus))
 print("Number of loads:", len(net.load))
 print("Number of lines:", len(net.line))
