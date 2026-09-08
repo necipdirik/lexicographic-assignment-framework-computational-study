@@ -15,7 +15,7 @@ def value(r, n):
 model = Model("verification_instance")
 
 E = model.addVars(R, N, vtype=GRB.BINARY, name="E")
-s = model.addVars(C, lb=0, vtype=GRB.CONTINUOUS, name="s")
+epsilon = model.addVars(C, lb=0, vtype=GRB.CONTINUOUS, name="epsilon")
 
 # -------------------------
 # Subproblem 1: maximize F
@@ -69,7 +69,7 @@ for c in C:
 # -------------------------
 model.setObjective(
     sum(value(r, n) * D[(r, n)] * E[r, n] for r in R for n in N)
-    - sum(w[c] * s[c] for c in C),
+    - sum(w[c] * epsilon[c] for c in C),
     GRB.MAXIMIZE,
 )
 
@@ -85,7 +85,7 @@ model.addConstr(
 
 for c in C:
     model.addConstr(
-        sum(a[(n, c)] * D[(r, n)] * E[r, n] for r in R for n in N) + s[c] >= T[c]
+        sum(a[(n, c)] * D[(r, n)] * E[r, n] for r in R for n in N) + epsilon[c] >= T[c]
     )
 
 model.optimize()
@@ -103,4 +103,4 @@ for r in R:
 
 print("\nSlack values:")
 for c in C:
-    print(f"{c}: {s[c].X}")
+    print(f"{c}: {epsilon[c].X}")

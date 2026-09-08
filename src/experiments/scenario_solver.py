@@ -355,11 +355,11 @@ def solve_quantity_formulation(
         name="x",
     )
 
-    s = model.addVars(
+    epsilon = model.addVars(
         C,
         lb=0.0,
         vtype=GRB.CONTINUOUS,
-        name="s",
+        name="epsilon",
     )
 
     add_assignment_constraints(
@@ -387,7 +387,7 @@ def solve_quantity_formulation(
                 for r, n in available_pairs
                 if n in class_nodes[c]
             )
-            + s[c]
+            + epsilon[c]
             >= M_c[c],
             name=f"secondary_priority_protection_{c}",
         )
@@ -398,7 +398,7 @@ def solve_quantity_formulation(
             for r, n in available_pairs
         )
         - gp.quicksum(
-            penalty_weights[c] * s[c]
+            penalty_weights[c] * epsilon[c]
             for c in C
         ),
         GRB.MAXIMIZE,
@@ -420,7 +420,7 @@ def solve_quantity_formulation(
         C,
         class_nodes,
         "Quantity",
-        s,
+        epsilon,
     )
 
     result["solve_time"] = solve_time
@@ -461,11 +461,11 @@ def solve_quality_formulation(
         name="x",
     )
 
-    s = model.addVars(
+    epsilon = model.addVars(
         C,
         lb=0.0,
         vtype=GRB.CONTINUOUS,
-        name="s",
+        name="epsilon",
     )
 
     add_assignment_constraints(
@@ -502,7 +502,7 @@ def solve_quality_formulation(
                 for r, n in available_pairs
                 if n in class_nodes[c]
             )
-            + s[c]
+            + epsilon[c]
             >= M_c[c],
             name=f"secondary_priority_protection_{c}",
         )
@@ -513,7 +513,7 @@ def solve_quality_formulation(
             for r, n in available_pairs
         )
         - gp.quicksum(
-            penalty_weights[c] * s[c]
+            penalty_weights[c] * epsilon[c]
             for c in C
         ),
         GRB.MAXIMIZE,
@@ -535,7 +535,7 @@ def solve_quality_formulation(
         C,
         class_nodes,
         "Quality",
-        s,
+        epsilon,
     )
 
     result["solve_time"] = solve_time
