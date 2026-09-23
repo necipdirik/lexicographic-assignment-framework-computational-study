@@ -18,15 +18,15 @@ SCARCITY_LABELS = {
 # =========================================================
 
 MODEL_COLORS = {
-    "Quantity": "#7EA6D8",
-    "Quality": "#7FBE8C",
-    "Aggregate-Value": "#D97A7C",
+    "QNTF": "#7EA6D8",
+    "QLTF": "#7FBE8C",
+    "AVF": "#D97A7C",
 }
 
 MODEL_HATCHES = {
-    "Quantity": "///",
-    "Quality": "\\\\\\",
-    "Aggregate-Value": "xxx",
+    "QNTF": "///",
+    "QLTF": "\\\\\\",
+    "AVF": "xxx",
 }
 
 

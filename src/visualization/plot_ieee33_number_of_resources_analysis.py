@@ -55,7 +55,7 @@ def save_panel_figure(summary):
                 "qual_highest_priority",
                 "w_highest_priority",
             ],
-            "(a) Highest-Priority Assignments",
+            "(a) HP Assignments",
             "Average",
         ),
         (
@@ -64,7 +64,7 @@ def save_panel_figure(summary):
                 "qual_secondary_priority",
                 "w_secondary_priority",
             ],
-            "(b) Secondary-Priority Assignments",
+            "(b) SP Assignments",
             "Average per Class",
         ),
         (
@@ -90,9 +90,9 @@ def save_panel_figure(summary):
     ):
         plot_df = summary[columns].rename(  
             columns={
-                columns[0]: "Quantity",
-                columns[1]: "Quality",
-                columns[2]: "Aggregate-Value",
+                columns[0]: "QNTF",
+                columns[1]: "QLTF",
+                columns[2]: "AVF",
             }
         )
 

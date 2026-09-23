@@ -53,15 +53,15 @@ def save_highest_priority_full_factorial_3d_figure(summary):
     formulation_specs = [
         (
             "qty_highest_priority",
-            "(a) Quantity",
+            "(a) QNTF",
         ),
         (
             "qual_highest_priority",
-            "(b) Quality",
+            "(b) QLTF",
         ),
         (
             "w_highest_priority",
-            "(c) Aggregate-Value",
+            "(c) AVF",
         ),
     ]
 
@@ -242,7 +242,7 @@ def save_highest_priority_full_factorial_3d_figure(summary):
     fig.text(
         0.925,
         0.60,
-        "Average\nHighest-Priority Assignments",
+        "Average HP Assignments",
         rotation=90,
         va="center",
         ha="center",

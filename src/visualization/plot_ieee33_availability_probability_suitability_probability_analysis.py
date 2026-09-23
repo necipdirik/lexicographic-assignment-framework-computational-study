@@ -54,9 +54,9 @@ def save_highest_priority_heatmaps(summary):
     """
 
     formulation_specs = [
-        ("qty_highest_priority", "(a) Quantity"),
-        ("qual_highest_priority", "(b) Quality"),
-        ("w_highest_priority", "(c) Aggregate-Value"),
+        ("qty_highest_priority", "(a) QNTF"),
+        ("qual_highest_priority", "(b) QLTF"),
+        ("w_highest_priority", "(c) AVF"),
     ]
 
     fig, axes = plt.subplots(
@@ -213,7 +213,7 @@ def save_highest_priority_heatmaps(summary):
     )
 
     colorbar.set_label(
-        "Average Highest-Priority Assignments",
+        "Average HP Assignments",
         fontsize=15,
         labelpad=25,
     )
