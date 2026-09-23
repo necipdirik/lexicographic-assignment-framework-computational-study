@@ -16,10 +16,7 @@ DATA_DIR = BASE_DIR / "outputs" / "data"
 # =========================================================
 
 def create_availability_probability_suitability_probability_summary():
-    """
-    Create a summary of the IEEE 33-bus availability-probability
-    and suitability-probability experimental results.
-    """
+    """Calculate mean IEEE 33-bus results by availability and suitability probabilities."""
 
     input_path = (
         DATA_DIR

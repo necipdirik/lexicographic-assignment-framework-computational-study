@@ -45,7 +45,7 @@ def average_secondary_priority_assignments(formulation_result):
 
 def run_number_of_resources_experiment():
     """
-    Run the IEEE 118-bus larger-scale validation experiment
+    Run the IEEE 118-bus experiment
     for different numbers of resources.
     """
 

@@ -16,10 +16,7 @@ DATA_DIR = BASE_DIR / "outputs" / "data"
 # =========================================================
 
 def create_full_factorial_summary():
-    """
-    Create a 27-row summary of the IEEE 33-bus full-factorial
-    experimental results.
-    """
+    """Calculate mean IEEE 33-bus results for each full-factorial combination."""
 
     input_path = (
         DATA_DIR

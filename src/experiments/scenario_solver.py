@@ -17,34 +17,13 @@ def load_ieee33_data():
     # Demand nodes are represented by load buses.
     N = sorted(set(int(b) for b in net.load.bus.values))
 
-    # Node values are based on real active load demand.
+    # Active load demand is extracted for each demand node.
     node_value = {}
     for j in N:
         demand = float(net.load.loc[net.load.bus == j, "p_mw"].sum())
         node_value[j] = demand
 
     return net, N, node_value
-
-
-# =========================================================
-# IEEE 57-BUS DATA LOADING
-# =========================================================
-
-def load_ieee57_data():
-    """Load the IEEE 57-bus system and extract demand-node values."""
-    net = pn.case57()
-
-    # Demand nodes are represented by load buses.
-    N = sorted(set(int(b) for b in net.load.bus.values))
-
-    # Node values are based on real active load demand.
-    node_value = {}
-    for j in N:
-        demand = float(net.load.loc[net.load.bus == j, "p_mw"].sum())
-        node_value[j] = demand
-
-    return net, N, node_value
-
 
 # =========================================================
 # IEEE 118-BUS DATA LOADING
@@ -53,8 +32,10 @@ def load_ieee118_data():
     """Load the IEEE 118-bus system and extract demand-node values."""
     net = pn.case118()
 
+    # Demand nodes are represented by load buses.
     N = sorted(set(int(b) for b in net.load.bus.values))
 
+    # Active load demand is extracted for each demand node.
     node_value = {}
     for j in N:
         demand = float(net.load.loc[net.load.bus == j, "p_mw"].sum())
@@ -341,9 +322,8 @@ def solve_quantity_formulation(
     penalty_weights,
 ):
     """
-    Maximize the total number of assignments while preserving the
-    highest-priority result and penalizing deviations from M_c
-    for each secondary priority class c in C.
+    Maximize assignment count minus penalties for SP target shortfalls
+    while enforcing the HP target M_H.
     """
 
     model = gp.Model("quantity_formulation")
@@ -448,8 +428,8 @@ def solve_quality_formulation(
     penalty_weights,
 ):
     """
-    Maximize total assignment value while preserving the maximum
-    assignment count and the priority-protection levels.
+    Maximize assignment value minus penalties for SP target shortfalls
+    while fixing the assignment count and enforcing the HP target M_H.
     """
 
     model = gp.Model("quality_formulation")
@@ -549,7 +529,7 @@ def solve_quality_formulation(
     return result
 
 # =========================================================
-# WEIGHTED FORMULATION
+# AGGREGATE-VALUE FORMULATION
 # =========================================================
 def solve_weighted_formulation(
     R,
@@ -626,14 +606,12 @@ def run_single_scenario(
     network="33",
 ):
     """
-    Run Quantity, Quality, and Weighted formulations
+    Run Quantity, Quality, and Aggregate-Value formulations
     for one generated scenario.
     """
 
     if network == "33":
         _, N, _ = load_ieee33_data()
-    elif network == "57":
-        _, N, _ = load_ieee57_data()
     elif network == "118":
         _, N, _ = load_ieee118_data()
     else:
@@ -806,7 +784,7 @@ def run_single_scenario(
     }
 
 # =========================================================
-# TEMPORARY CHECK
+# DEMAND-NODE COUNT CHECK
 # =========================================================
 
 if __name__ == "__main__":

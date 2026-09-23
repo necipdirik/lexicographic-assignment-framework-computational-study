@@ -16,10 +16,7 @@ DATA_DIR = BASE_DIR / "outputs" / "data"
 # =========================================================
 
 def create_penalty_weight_sensitivity_summary():
-    """
-    Create a summary of the IEEE 33-bus
-    penalty-weight sensitivity results.
-    """
+    """Calculate mean IEEE 33-bus results by penalty weight."""
 
     input_path = (
         DATA_DIR
