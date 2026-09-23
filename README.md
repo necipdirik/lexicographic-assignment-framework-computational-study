@@ -2,7 +2,7 @@
 
 This repository contains the computational implementation and experimental analyses for the study:
 
-**A Lexicographic Assignment Framework for Priority-Preserving Resource Allocation: From Personnel Assignment to Energy Systems**
+**A Lexicographic Assignment Framework for Priority-Preserving Resource Allocation**
 
 The computational experiments evaluate priority-preserving assignment formulations under different resource availability and suitability conditions using the IEEE 33-bus and IEEE 118-bus benchmark systems.
 
