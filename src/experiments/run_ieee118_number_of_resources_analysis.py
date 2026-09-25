@@ -21,10 +21,7 @@ DATA_DIR = BASE_DIR / "outputs" / "data"
 # =========================================================
 
 def average_secondary_priority_assignments(formulation_result):
-    """
-    Return the average number of assignments across
-    secondary-priority classes.
-    """
+    """Return the average assignments per secondary priority class."""
 
     secondary_priority_covered = formulation_result[
         "secondary_priority_covered"
@@ -44,10 +41,7 @@ def average_secondary_priority_assignments(formulation_result):
 # =========================================================
 
 def run_number_of_resources_experiment():
-    """
-    Run the IEEE 118-bus experiment
-    for different numbers of resources.
-    """
+    """Run the IEEE 118-bus resource-count experiment."""
 
     results = []
 
@@ -177,10 +171,7 @@ def run_number_of_resources_experiment():
 # =========================================================
 
 def print_summary(df):
-    """
-    Print average IEEE 118-bus results
-    by number of resources.
-    """
+    """Print IEEE 118-bus averages by number of resources."""
 
     pd.set_option(
         "display.max_columns",
