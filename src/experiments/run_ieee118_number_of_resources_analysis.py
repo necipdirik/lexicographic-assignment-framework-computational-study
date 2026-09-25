@@ -165,70 +165,6 @@ def run_number_of_resources_experiment():
 
     return pd.DataFrame(results)
 
-
-# =========================================================
-# SUMMARY
-# =========================================================
-
-def print_summary(df):
-    """Print IEEE 118-bus averages by number of resources."""
-
-    pd.set_option(
-        "display.max_columns",
-        None,
-    )
-
-    pd.set_option(
-        "display.width",
-        220,
-    )
-
-    summary_columns = [
-        "quantity_assignments",
-        "quality_assignments",
-        "aggregate_value_assignments",
-
-        "quantity_assignment_value",
-        "quality_assignment_value",
-        "aggregate_value_assignment_value",
-
-        "quantity_highest_priority",
-        "quality_highest_priority",
-        "aggregate_value_highest_priority",
-
-        "quantity_secondary_priority",
-        "quality_secondary_priority",
-        "aggregate_value_secondary_priority",
-
-        "quantity_time",
-        "quality_time",
-        "aggregate_value_time",
-    ]
-
-    print(
-        "\n=== IEEE 118-BUS AVERAGES "
-        "BY NUMBER OF RESOURCES ==="
-    )
-
-    summary = (
-        df.groupby(
-            "num_resources"
-        )[summary_columns]
-        .mean()
-        .reindex(
-            [
-                10,
-                15,
-                20,
-            ]
-        )
-    )
-
-    print(summary)
-
-    return summary
-
-
 # =========================================================
 # MAIN
 # =========================================================
@@ -242,16 +178,9 @@ if __name__ == "__main__":
 
     df = run_number_of_resources_experiment()
 
-    summary = print_summary(df)
-
     results_path = (
         DATA_DIR
         / "ieee118_number_of_resources_results.csv"
-    )
-
-    summary_path = (
-        DATA_DIR
-        / "ieee118_number_of_resources_summary.csv"
     )
 
     df.to_csv(
@@ -259,10 +188,5 @@ if __name__ == "__main__":
         index=False,
     )
 
-    summary.to_csv(
-        summary_path,
-    )
-
-    print("\nFiles saved:")
+    print("\nFile saved:")
     print(f" - {results_path}")
-    print(f" - {summary_path}")
