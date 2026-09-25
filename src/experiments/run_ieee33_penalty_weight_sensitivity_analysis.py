@@ -84,19 +84,19 @@ def run_penalty_weight_sensitivity_experiment():
                         "penalty_weight": penalty_weight,
                         "status": "infeasible",
 
-                        "qty_assignment_value": None,
-                        "qty_highest_priority": None,
-                        "qty_secondary_priority": None,
-                        "qty_average_slack": None,
+                        "quantity_assignment_value": None,
+                        "quantity_highest_priority": None,
+                        "quantity_secondary_priority": None,
+                        "quantity_average_slack": None,
 
-                        "qual_assignment_value": None,
-                        "qual_highest_priority": None,
-                        "qual_secondary_priority": None,
-                        "qual_average_slack": None,
+                        "quality_assignment_value": None,
+                        "quality_highest_priority": None,
+                        "quality_secondary_priority": None,
+                        "quality_average_slack": None,
 
-                        "w_assignment_value": None,
-                        "w_highest_priority": None,
-                        "w_secondary_priority": None,
+                        "aggregate_value_assignment_value": None,
+                        "aggregate_value_highest_priority": None,
+                        "aggregate_value_secondary_priority": None,
                     }
                 )
                 continue
@@ -107,37 +107,37 @@ def run_penalty_weight_sensitivity_experiment():
                     "penalty_weight": penalty_weight,
                     "status": "optimal",
 
-                    "qty_assignment_value":
+                    "quantity_assignment_value":
                         res["quantity"]["assignment_value"],
-                    "qty_highest_priority":
+                    "quantity_highest_priority":
                         res["quantity"]["highest_priority_covered"],
-                    "qty_secondary_priority":
+                    "quantity_secondary_priority":
                         average_secondary_priority_assignments(
                             res["quantity"]
                         ),
-                    "qty_average_slack":
+                    "quantity_average_slack":
                         average_slack(
                             res["quantity"]
                         ),
 
-                    "qual_assignment_value":
+                    "quality_assignment_value":
                         res["quality"]["assignment_value"],
-                    "qual_highest_priority":
+                    "quality_highest_priority":
                         res["quality"]["highest_priority_covered"],
-                    "qual_secondary_priority":
+                    "quality_secondary_priority":
                         average_secondary_priority_assignments(
                             res["quality"]
                         ),
-                    "qual_average_slack":
+                    "quality_average_slack":
                         average_slack(
                             res["quality"]
                         ),
 
-                    "w_assignment_value":
+                    "aggregate_value_assignment_value":
                         res["aggregate_value"]["assignment_value"],
-                    "w_highest_priority":
+                    "aggregate_value_highest_priority":
                         res["aggregate_value"]["highest_priority_covered"],
-                    "w_secondary_priority":
+                    "aggregate_value_secondary_priority":
                         average_secondary_priority_assignments(
                             res["aggregate_value"]
                         ),

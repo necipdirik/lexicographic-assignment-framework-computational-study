@@ -31,19 +31,19 @@ def create_penalty_weight_sensitivity_summary():
     df = pd.read_csv(input_path)
 
     summary_columns = [
-        "qty_assignment_value",
-        "qty_highest_priority",
-        "qty_secondary_priority",
-        "qty_average_slack",
+        "quantity_assignment_value",
+        "quantity_highest_priority",
+        "quantity_secondary_priority",
+        "quantity_average_slack",
 
-        "qual_assignment_value",
-        "qual_highest_priority",
-        "qual_secondary_priority",
-        "qual_average_slack",
+        "quality_assignment_value",
+        "quality_highest_priority",
+        "quality_secondary_priority",
+        "quality_average_slack",
 
-        "w_assignment_value",
-        "w_highest_priority",
-        "w_secondary_priority",
+        "aggregate_value_assignment_value",
+        "aggregate_value_highest_priority",
+        "aggregate_value_secondary_priority",
     ]
 
     summary = (
