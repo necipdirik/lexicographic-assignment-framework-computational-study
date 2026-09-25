@@ -81,14 +81,14 @@ def run_suitability_probability_experiment():
                         "quality_highest_priority": None,
                         "quality_secondary_priority": None,
 
-                        "w_assignments": None,
-                        "w_assignment_value": None,
-                        "w_highest_priority": None,
-                        "w_secondary_priority": None,
+                        "aggregate_value_assignments": None,
+                        "aggregate_value_assignment_value": None,
+                        "aggregate_value_highest_priority": None,
+                        "aggregate_value_secondary_priority": None,
 
                         "quantity_time": None,
                         "quality_time": None,
-                        "w_time": None,
+                        "aggregate_value_time": None,
                     }
                 )
                 continue
@@ -121,13 +121,13 @@ def run_suitability_probability_experiment():
                             res["quality"]
                         ),
 
-                    "w_assignments":
+                    "aggregate_value_assignments":
                         res["aggregate_value"]["assignments"],
-                    "w_assignment_value":
+                    "aggregate_value_assignment_value":
                         res["aggregate_value"]["assignment_value"],
-                    "w_highest_priority":
+                    "aggregate_value_highest_priority":
                         res["aggregate_value"]["highest_priority_covered"],
-                    "w_secondary_priority":
+                    "aggregate_value_secondary_priority":
                         average_secondary_priority_assignments(
                             res["aggregate_value"]
                         ),
@@ -136,7 +136,7 @@ def run_suitability_probability_experiment():
                         res["quantity"]["solve_time"],
                     "quality_time":
                         res["quality"]["solve_time"],
-                    "w_time":
+                    "aggregate_value_time":
                         res["aggregate_value"]["solve_time"],
                 }
             )
