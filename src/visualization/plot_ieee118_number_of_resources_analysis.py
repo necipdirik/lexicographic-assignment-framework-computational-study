@@ -51,27 +51,27 @@ def save_panel_figure(summary):
     panel_specs = [
         (
             [
-                "qty_highest_priority",
-                "qual_highest_priority",
-                "w_highest_priority",
+                "quantity_highest_priority",
+                "quality_highest_priority",
+                "aggregate_value_highest_priority",
             ],
             "(a) HP Assignments",
             "Average",
         ),
         (
             [
-                "qty_secondary_priority",
-                "qual_secondary_priority",
-                "w_secondary_priority",
+                "quantity_secondary_priority",
+                "quality_secondary_priority",
+                "aggregate_value_secondary_priority",
             ],
             "(b) SP Assignments",
             "Average per Class",
         ),
         (
             [
-                "qty_assignment_value",
-                "qual_assignment_value",
-                "w_assignment_value",
+                "quantity_assignment_value",
+                "quality_assignment_value",
+                "aggregate_value_assignment_value",
             ],
             "(c) Total Assignment Value",
             "Average",
