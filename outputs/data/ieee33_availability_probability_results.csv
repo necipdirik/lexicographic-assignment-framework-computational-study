@@ -1,4 +1,4 @@
-seed,availability_probability,status,qty_assignments,qty_assignment_value,qty_highest_priority,qty_secondary_priority,qual_assignments,qual_assignment_value,qual_highest_priority,qual_secondary_priority,w_assignments,w_assignment_value,w_highest_priority,w_secondary_priority,qty_time,qual_time,w_time
+seed,availability_probability,status,quantity_assignments,quantity_assignment_value,quantity_highest_priority,quantity_secondary_priority,quality_assignments,quality_assignment_value,quality_highest_priority,quality_secondary_priority,aggregate_value_assignments,aggregate_value_assignment_value,aggregate_value_highest_priority,aggregate_value_secondary_priority,quantity_time,quality_time,aggregate_value_time
 0,0.3,optimal,7,16,5,1.3333333333333333,7,16,5,1.3333333333333333,7,22,0,2.6666666666666665,0.0010001659393310547,0.0009772777557373047,0.0
 1,0.3,optimal,7,15,5,1.0,7,15,5,1.0,7,23,0,3.0,0.004986286163330078,0.0024034976959228516,0.0
 2,0.3,optimal,7,10,5,0.6666666666666666,7,11,5,0.6666666666666666,7,20,0,2.0,0.0,0.000982522964477539,0.0
