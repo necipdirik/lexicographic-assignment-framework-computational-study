@@ -51,7 +51,7 @@ def run_number_of_resources_availability_probability_experiment():
     availability_levels = [0.30, 0.45, 0.60]
 
     # Hold resource-to-node suitability probability
-    # at its medium level.
+    # at its intermediate level.
     suitability_prob = 0.50
 
     for num_resources in resource_levels:
@@ -78,24 +78,24 @@ def run_number_of_resources_availability_probability_experiment():
                                 availability_prob,
                             "status": "infeasible",
 
-                            "qty_assignments": None,
-                            "qty_assignment_value": None,
-                            "qty_highest_priority": None,
-                            "qty_secondary_priority": None,
+                            "quantity_assignments": None,
+                            "quantity_assignment_value": None,
+                            "quantity_highest_priority": None,
+                            "quantity_secondary_priority": None,
 
-                            "qual_assignments": None,
-                            "qual_assignment_value": None,
-                            "qual_highest_priority": None,
-                            "qual_secondary_priority": None,
+                            "quality_assignments": None,
+                            "quality_assignment_value": None,
+                            "quality_highest_priority": None,
+                            "quality_secondary_priority": None,
 
-                            "w_assignments": None,
-                            "w_assignment_value": None,
-                            "w_highest_priority": None,
-                            "w_secondary_priority": None,
+                            "aggregate_value_assignments": None,
+                            "aggregate_value_assignment_value": None,
+                            "aggregate_value_highest_priority": None,
+                            "aggregate_value_secondary_priority": None,
 
-                            "qty_time": None,
-                            "qual_time": None,
-                            "w_time": None,
+                            "quantity_time": None,
+                            "quality_time": None,
+                            "aggregate_value_time": None,
                         }
                     )
                     continue
@@ -108,44 +108,44 @@ def run_number_of_resources_availability_probability_experiment():
                             availability_prob,
                         "status": "optimal",
 
-                        "qty_assignments":
+                        "quantity_assignments":
                             res["quantity"]["assignments"],
-                        "qty_assignment_value":
+                        "quantity_assignment_value":
                             res["quantity"]["assignment_value"],
-                        "qty_highest_priority":
+                        "quantity_highest_priority":
                             res["quantity"]["highest_priority_covered"],
-                        "qty_secondary_priority":
+                        "quantity_secondary_priority":
                             average_secondary_priority_assignments(
                                 res["quantity"]
                             ),
 
-                        "qual_assignments":
+                        "quality_assignments":
                             res["quality"]["assignments"],
-                        "qual_assignment_value":
+                        "quality_assignment_value":
                             res["quality"]["assignment_value"],
-                        "qual_highest_priority":
+                        "quality_highest_priority":
                             res["quality"]["highest_priority_covered"],
-                        "qual_secondary_priority":
+                        "quality_secondary_priority":
                             average_secondary_priority_assignments(
                                 res["quality"]
                             ),
 
-                        "w_assignments":
+                        "aggregate_value_assignments":
                             res["aggregate_value"]["assignments"],
-                        "w_assignment_value":
+                        "aggregate_value_assignment_value":
                             res["aggregate_value"]["assignment_value"],
-                        "w_highest_priority":
+                        "aggregate_value_highest_priority":
                             res["aggregate_value"]["highest_priority_covered"],
-                        "w_secondary_priority":
+                        "aggregate_value_secondary_priority":
                             average_secondary_priority_assignments(
                                 res["aggregate_value"]
                             ),
 
-                        "qty_time":
+                        "quantity_time":
                             res["quantity"]["solve_time"],
-                        "qual_time":
+                        "quality_time":
                             res["quality"]["solve_time"],
-                        "w_time":
+                        "aggregate_value_time":
                             res["aggregate_value"]["solve_time"],
                     }
                 )

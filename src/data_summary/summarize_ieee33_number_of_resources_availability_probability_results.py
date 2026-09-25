@@ -40,25 +40,25 @@ def create_number_of_resources_availability_probability_summary():
     df = pd.read_csv(input_path)
 
     summary_columns = [
-        "qty_assignments",
-        "qual_assignments",
-        "w_assignments",
+        "quantity_assignments",
+        "quality_assignments",
+        "aggregate_value_assignments",
 
-        "qty_assignment_value",
-        "qual_assignment_value",
-        "w_assignment_value",
+        "quantity_assignment_value",
+        "quality_assignment_value",
+        "aggregate_value_assignment_value",
 
-        "qty_highest_priority",
-        "qual_highest_priority",
-        "w_highest_priority",
+        "quantity_highest_priority",
+        "quality_highest_priority",
+        "aggregate_value_highest_priority",
 
-        "qty_secondary_priority",
-        "qual_secondary_priority",
-        "w_secondary_priority",
+        "quantity_secondary_priority",
+        "quality_secondary_priority",
+        "aggregate_value_secondary_priority",
 
-        "qty_time",
-        "qual_time",
-        "w_time",
+        "quantity_time",
+        "quality_time",
+        "aggregate_value_time",
     ]
 
     summary = (
