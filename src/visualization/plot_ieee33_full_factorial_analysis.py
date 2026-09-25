@@ -52,15 +52,15 @@ def save_highest_priority_full_factorial_3d_figure(summary):
 
     formulation_specs = [
         (
-            "qty_highest_priority",
+            "quantity_highest_priority",
             "(a) QNTF",
         ),
         (
-            "qual_highest_priority",
+            "quality_highest_priority",
             "(b) QLTF",
         ),
         (
-            "w_highest_priority",
+            "aggregate_value_highest_priority",
             "(c) AVF",
         ),
     ]
