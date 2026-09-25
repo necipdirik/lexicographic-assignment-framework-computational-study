@@ -71,23 +71,23 @@ def run_suitability_probability_experiment():
                         "suitability_probability": suitability_prob,
                         "status": "infeasible",
 
-                        "qty_assignments": None,
-                        "qty_assignment_value": None,
-                        "qty_highest_priority": None,
-                        "qty_secondary_priority": None,
+                        "quantity_assignments": None,
+                        "quantity_assignment_value": None,
+                        "quantity_highest_priority": None,
+                        "quantity_secondary_priority": None,
 
-                        "qual_assignments": None,
-                        "qual_assignment_value": None,
-                        "qual_highest_priority": None,
-                        "qual_secondary_priority": None,
+                        "quality_assignments": None,
+                        "quality_assignment_value": None,
+                        "quality_highest_priority": None,
+                        "quality_secondary_priority": None,
 
                         "w_assignments": None,
                         "w_assignment_value": None,
                         "w_highest_priority": None,
                         "w_secondary_priority": None,
 
-                        "qty_time": None,
-                        "qual_time": None,
+                        "quantity_time": None,
+                        "quality_time": None,
                         "w_time": None,
                     }
                 )
@@ -99,24 +99,24 @@ def run_suitability_probability_experiment():
                     "suitability_probability": suitability_prob,
                     "status": "optimal",
 
-                    "qty_assignments":
+                    "quantity_assignments":
                         res["quantity"]["assignments"],
-                    "qty_assignment_value":
+                    "quantity_assignment_value":
                         res["quantity"]["assignment_value"],
-                    "qty_highest_priority":
+                    "quantity_highest_priority":
                         res["quantity"]["highest_priority_covered"],
-                    "qty_secondary_priority":
+                    "quantity_secondary_priority":
                         average_secondary_priority_assignments(
                             res["quantity"]
                         ),
 
-                    "qual_assignments":
+                    "quality_assignments":
                         res["quality"]["assignments"],
-                    "qual_assignment_value":
+                    "quality_assignment_value":
                         res["quality"]["assignment_value"],
-                    "qual_highest_priority":
+                    "quality_highest_priority":
                         res["quality"]["highest_priority_covered"],
-                    "qual_secondary_priority":
+                    "quality_secondary_priority":
                         average_secondary_priority_assignments(
                             res["quality"]
                         ),
@@ -132,9 +132,9 @@ def run_suitability_probability_experiment():
                             res["aggregate_value"]
                         ),
 
-                    "qty_time":
+                    "quantity_time":
                         res["quantity"]["solve_time"],
-                    "qual_time":
+                    "quality_time":
                         res["quality"]["solve_time"],
                     "w_time":
                         res["aggregate_value"]["solve_time"],

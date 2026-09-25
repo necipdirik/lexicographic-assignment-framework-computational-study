@@ -1,4 +1,4 @@
-suitability_probability,qty_assignments,qual_assignments,w_assignments,qty_assignment_value,qual_assignment_value,w_assignment_value,qty_highest_priority,qual_highest_priority,w_highest_priority,qty_secondary_priority,qual_secondary_priority,w_secondary_priority,qty_time,qual_time,w_time
+suitability_probability,quantity_assignments,quality_assignments,aggregate_value_assignments,quantity_assignment_value,quality_assignment_value,aggregate_value_assignment_value,quantity_highest_priority,quality_highest_priority,aggregate_value_highest_priority,quantity_secondary_priority,quality_secondary_priority,aggregate_value_secondary_priority,quantity_time,quality_time,aggregate_value_time
 0.3,7.0,7.0,7.0,12.95,14.76,21.76,4.97,4.97,0.14,1.2866666666666666,1.2566666666666668,2.973333333333333,0.003834486007690383,0.003926978111267041,0.0012870931625365819
 0.5,7.0,7.0,7.0,14.34,16.17,22.91,4.97,4.97,0.06,1.2866666666666666,1.2666666666666666,3.0866666666666664,0.0034899306297301743,0.003691413402557321,0.001488177776336636
 0.7,7.0,7.0,7.0,15.72,17.08,23.33,4.97,4.97,0.02,1.2866666666666666,1.28,3.16,0.003334045410156206,0.003663058280944773,0.0016800737380981078
