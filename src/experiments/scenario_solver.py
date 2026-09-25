@@ -10,7 +10,9 @@ import time
 # IEEE 33-BUS DATA LOADING
 # =========================================================
 def load_ieee33_data():
-    """Load the IEEE 33-bus system and extract demand-node values."""
+    """
+    Load the IEEE 33-bus system and extract demand-node values.
+    """
     net = pn.case33bw()
 
     # Demand nodes are represented by load buses.
@@ -22,7 +24,9 @@ def load_ieee33_data():
 # IEEE 118-BUS DATA LOADING
 # =========================================================
 def load_ieee118_data():
-    """Load the IEEE 118-bus system and extract demand-node values."""
+    """
+    Load the IEEE 118-bus system and extract demand-node values.
+    """
     net = pn.case118()
 
     # Demand nodes are represented by load buses.
@@ -41,7 +45,10 @@ def generate_scenario(
     secondary_class_counts=None,
     availability_prob=0.45,
 ):
-    """Generate resources, priority sets and classes, and available resource-to-node pairs."""
+    """
+    Generate resources, priority sets and classes, and available 
+    resource-to-node pairs.
+    """
 
     if secondary_class_counts is None:
         secondary_class_counts = {
@@ -57,7 +64,8 @@ def generate_scenario(
     # H: highest-priority demand nodes.
     H = set(rng.sample(N, highest_priority_count))
 
-    # C: index set of secondary-priority classes defined over demand nodes.
+    # C: index set of secondary-priority classes defined over demand 
+    # nodes.
     C = list(secondary_class_counts.keys())
 
     # Keep H separate from secondary priority classes.
@@ -107,7 +115,9 @@ def generate_scenario(
 # SHARED MODEL HELPERS
 # =========================================================
 def add_assignment_constraints(model, x, available_pairs, R, N):
-    """Limit each resource and demand node to at most one assignment."""
+    """
+    Limit each resource and demand node to at most one assignment.
+    """
 
     # Each resource can be assigned to at most one demand node.
     for r in R:
@@ -144,7 +154,10 @@ def collect_solution(
     formulation_name,
     slack_vars=None,
 ):
-    """Collect assignment results and performance metrics from a solved formulation."""
+    """
+    Collect assignment results and performance metrics from 
+    a solved formulation.
+    """
 
     selected_pairs = [
         (r, n)
@@ -198,7 +211,10 @@ def collect_solution(
 # SUB-PROBLEM 1 FORMULATION
 # =========================================================
 def solve_subproblem_1(R, available_pairs, H):
-    """Return M_H: maximum coverage of highest-priority demand nodes."""
+    """
+    Return M_H: maximum coverage of highest-priority demand 
+    nodes.
+    """
 
     model = gp.Model("subproblem_1")
     model.Params.OutputFlag = 0
@@ -306,8 +322,8 @@ def solve_quantity_formulation(
     M_c,
     penalty_weights,
 ):
-    """
-    Maximize assignment count minus penalties for SP target shortfalls
+    """ 
+    Maximize assignment count minus penalties for SP target shortfalls 
     while enforcing the HP target M_H.
     """
 
@@ -525,7 +541,10 @@ def solve_aggregate_value_formulation(
     C,
     class_nodes,
 ):
-    """Maximize total assignment value without explicit priority protection."""
+    """
+    Maximize total assignment value without explicit priority 
+    protection.
+    """
 
     model = gp.Model("aggregate_value_formulation")
     model.Params.OutputFlag = 0
