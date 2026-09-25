@@ -16,7 +16,10 @@ DATA_DIR = BASE_DIR / "outputs" / "data"
 # =========================================================
 
 def create_number_of_resources_suitability_probability_summary():
-    """Calculate mean IEEE 33-bus results by number of resources and suitability probability."""
+    """
+    Calculate mean IEEE 33-bus results by number of resources and 
+    suitability probability.
+    """
 
     input_path = (
         DATA_DIR
