@@ -1,4 +1,4 @@
-num_resources,qty_assignments,qual_assignments,w_assignments,qty_assignment_value,qual_assignment_value,w_assignment_value,qty_highest_priority,qual_highest_priority,w_highest_priority,qty_secondary_priority,qual_secondary_priority,w_secondary_priority,qty_time,qual_time,w_time
+num_resources,quantity_assignments,quality_assignments,aggregate_value_assignments,quantity_assignment_value,quality_assignment_value,aggregate_value_assignment_value,quantity_highest_priority,quality_highest_priority,aggregate_value_highest_priority,quantity_secondary_priority,quality_secondary_priority,aggregate_value_secondary_priority,quantity_time,quality_time,aggregate_value_time
 4,4.0,4.0,4.0,6.18,7.02,13.56,3.88,3.88,0.03,0.05333333333333333,0.05333333333333333,2.0066666666666664,0.000588998794555638,0.001206407546997038,0.00034828186035154503
 7,7.0,7.0,7.0,14.34,16.17,22.91,4.97,4.97,0.06,1.2866666666666666,1.2666666666666666,3.0866666666666664,0.003346486091613721,0.003521986007690379,0.0014044737815856508
 10,10.0,10.0,10.0,22.5,26.64,31.75,5.0,5.0,0.12,2.52,2.5066666666666664,4.04,0.0037144351005553677,0.003662917613983104,0.0030847311019896978
