@@ -5,8 +5,16 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from gurobipy import GRB, Model
 
-from verification.gurobi.verification_gurobi_instance_no_feasible_solution import R, N, C, H, D, P, a, w
-
+from verification.gurobi.verification_gurobi_instance_no_feasible_solution import (
+    R,
+    N,
+    C,
+    H,
+    D,
+    P,
+    a,
+    w,
+)
 
 def value(r, n):
     return sum(a[(n, c)] for c in C) + P[(r, n)] + 1
@@ -17,9 +25,9 @@ model = Model("verification_instance")
 E = model.addVars(R, N, vtype=GRB.BINARY, name="E")
 epsilon = model.addVars(C, lb=0, vtype=GRB.CONTINUOUS, name="epsilon")
 
-# -------------------------
-# Subproblem 1: maximize F
-# -------------------------
+# =========================================================
+# SUB-PROBLEM 1
+# =========================================================
 model_f = Model("subproblem_1_F")
 
 E_f = model_f.addVars(R, H, vtype=GRB.BINARY, name="E")
@@ -39,9 +47,9 @@ model_f.optimize()
 
 F = int(round(model_f.ObjVal))
 
-# -------------------------
-# Subproblem 2: maximize Tc
-# -------------------------
+# =========================================================
+# SUB-PROBLEM 2
+# =========================================================
 T = {}
 
 for c in C:
@@ -64,9 +72,9 @@ for c in C:
 
     T[c] = int(round(model_t.ObjVal))
 
-# -------------------------
-# Main problem
-# -------------------------
+# =========================================================
+# MAIN PROBLEM
+# =========================================================
 model.setObjective(
     sum(value(r, n) * D[(r, n)] * E[r, n] for r in R for n in N)
     - sum(w[c] * epsilon[c] for c in C),
@@ -85,7 +93,13 @@ model.addConstr(
 
 for c in C:
     model.addConstr(
-        sum(a[(n, c)] * D[(r, n)] * E[r, n] for r in R for n in N) + epsilon[c] >= T[c]
+        sum(
+            a[(n, c)] * D[(r, n)] * E[r, n]
+            for r in R
+            for n in N
+        )
+        + epsilon[c]
+        >= T[c]
     )
 
 model.optimize()
