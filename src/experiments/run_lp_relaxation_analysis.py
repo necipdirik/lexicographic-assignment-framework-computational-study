@@ -395,7 +395,7 @@ def run_lp_relaxation_scenario(
         N = load_ieee33_data()
 
     elif network == "118":
-        _, N, _ = load_ieee118_data()
+        N = load_ieee118_data()
 
     else:
         raise ValueError(

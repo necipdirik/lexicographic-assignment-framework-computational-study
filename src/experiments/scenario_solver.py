@@ -29,13 +29,7 @@ def load_ieee118_data():
     # Demand nodes are represented by load buses.
     N = sorted(set(int(b) for b in net.load.bus.values))
 
-    # Active load demand is extracted for each demand node.
-    node_value = {}
-    for j in N:
-        demand = float(net.load.loc[net.load.bus == j, "p_mw"].sum())
-        node_value[j] = demand
-
-    return net, N, node_value
+    return N
 
 # =========================================================
 # SCENARIO GENERATION
@@ -607,7 +601,7 @@ def run_single_scenario(
     if network == "33":
         N = load_ieee33_data()
     elif network == "118":
-        _, N, _ = load_ieee118_data()
+        N = load_ieee118_data()
     else:
         raise ValueError(
             f"Unsupported network type: {network}"
@@ -783,7 +777,7 @@ def run_single_scenario(
 
 if __name__ == "__main__":
     N33 = load_ieee33_data()
-    _, N118, _ = load_ieee118_data()
+    N118 = load_ieee118_data()
 
     print("IEEE 33 demand nodes:", len(N33))
     print("IEEE 118 demand nodes:", len(N118))
