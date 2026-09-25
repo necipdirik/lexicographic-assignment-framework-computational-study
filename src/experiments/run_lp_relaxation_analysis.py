@@ -446,7 +446,6 @@ def run_lp_relaxation_scenario(
 
     M_H = solve_subproblem_1(
         R,
-        N,
         available_pairs,
         H,
     )
