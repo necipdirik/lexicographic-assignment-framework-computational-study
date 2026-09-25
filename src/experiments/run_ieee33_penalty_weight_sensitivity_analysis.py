@@ -133,12 +133,12 @@ def run_penalty_weight_sensitivity_experiment():
                         ),
 
                     "w_assignment_value":
-                        res["weighted"]["assignment_value"],
+                        res["aggregate_value"]["assignment_value"],
                     "w_highest_priority":
-                        res["weighted"]["highest_priority_covered"],
+                        res["aggregate_value"]["highest_priority_covered"],
                     "w_secondary_priority":
                         average_secondary_priority_assignments(
-                            res["weighted"]
+                            res["aggregate_value"]
                         ),
                 }
             )

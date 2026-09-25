@@ -6,7 +6,6 @@ import pandapower.networks as pn
 
 import time
 
-
 # =========================================================
 # IEEE 33-BUS DATA LOADING
 # =========================================================
@@ -42,7 +41,7 @@ def generate_scenario(
     secondary_class_counts=None,
     availability_prob=0.45,
 ):
-    """Generate resources, priority-node groups, and available assignment pairs."""
+    """Generate resources, priority sets and classes, and available resource-to-node pairs."""
 
     if secondary_class_counts is None:
         secondary_class_counts = {
@@ -58,7 +57,7 @@ def generate_scenario(
     # H: highest-priority demand nodes.
     H = set(rng.sample(N, highest_priority_count))
 
-    # C: secondary priority classes.
+    # C: index set of secondary-priority classes defined over demand nodes.
     C = list(secondary_class_counts.keys())
 
     # Keep H separate from secondary priority classes.
@@ -81,7 +80,7 @@ def generate_scenario(
             )
         )
 
-    # Available resource-demand node pairs.
+    # Available resource-to-node pairs.
     available_pairs = []
 
     for r in R:
@@ -108,7 +107,7 @@ def generate_scenario(
 # SHARED MODEL HELPERS
 # =========================================================
 def add_assignment_constraints(model, x, available_pairs, R, N):
-    """Add one-to-one assignment constraints for resources and demand nodes."""
+    """Limit each resource and demand node to at most one assignment."""
 
     # Each resource can be assigned to at most one demand node.
     for r in R:
@@ -196,16 +195,20 @@ def collect_solution(
     }
 
 # =========================================================
-# SUB-PROBLEM 1
+# SUB-PROBLEM 1 FORMULATION
 # =========================================================
-def solve_subproblem_1(R, N, available_pairs, H):
+def solve_subproblem_1(R, available_pairs, H):
     """Return M_H: maximum coverage of highest-priority demand nodes."""
 
     model = gp.Model("subproblem_1")
     model.Params.OutputFlag = 0
 
+    highest_priority_pairs = [
+        (r, n) for r, n in available_pairs if n in H
+    ]
+
     x = model.addVars(
-        available_pairs,
+        highest_priority_pairs,
         vtype=GRB.BINARY,
         name="x",
     )
@@ -213,17 +216,13 @@ def solve_subproblem_1(R, N, available_pairs, H):
     add_assignment_constraints(
         model,
         x,
-        available_pairs,
+        highest_priority_pairs,
         R,
-        N,
+        H,
     )
 
     model.setObjective(
-        gp.quicksum(
-            x[r, n]
-            for r, n in available_pairs
-            if n in H
-        ),
+        gp.quicksum(x[r, n] for r, n in highest_priority_pairs),
         GRB.MAXIMIZE,
     )
 
@@ -239,9 +238,8 @@ def solve_subproblem_1(R, N, available_pairs, H):
 
     return M_H
 
-
 # =========================================================
-# SUB-PROBLEM 2
+# SUB-PROBLEM 2 FORMULATION
 # =========================================================
 def solve_subproblem_2(
     R,
@@ -292,7 +290,6 @@ def solve_subproblem_2(
         model.dispose()
 
     return M_c
-
 
 # =========================================================
 # QUANTITY FORMULATION
@@ -519,7 +516,7 @@ def solve_quality_formulation(
 # =========================================================
 # AGGREGATE-VALUE FORMULATION
 # =========================================================
-def solve_weighted_formulation(
+def solve_aggregate_value_formulation(
     R,
     N,
     available_pairs,
@@ -530,7 +527,7 @@ def solve_weighted_formulation(
 ):
     """Maximize total assignment value without explicit priority protection."""
 
-    model = gp.Model("weighted_formulation")
+    model = gp.Model("aggregate_value_formulation")
     model.Params.OutputFlag = 0
 
     x = model.addVars(
@@ -570,7 +567,7 @@ def solve_weighted_formulation(
         H,
         C,
         class_nodes,
-        "Weighted",
+        "Aggregate-Value",
     )
 
     result["solve_time"] = solve_time
@@ -594,8 +591,9 @@ def run_single_scenario(
     network="33",
 ):
     """
-    Run Quantity, Quality, and Aggregate-Value formulations
-    for one generated scenario.
+    Generate one scenario and solve the Sub-problem 1 Formulation,
+    Sub-problem 2 Formulation, Quantity Formulation, Quality
+    Formulation, and Aggregate-Value Formulation.
     """
 
     if network == "33":
@@ -622,14 +620,14 @@ def run_single_scenario(
         availability_prob=availability_prob,
     )
 
-    # One penalty weight for each secondary priority class.
+    # Apply the same penalty weight to every secondary priority class.
     penalty_weights = {
         c: penalty_weight
         for c in C
     }
 
-    # Binary suitability matrix generated independently
-    # for all resource-node pairs.
+    # Generate binary suitability for every resource-demand node pair
+    # using a separate random number generator.
     suitability_rng = random.Random(seed + 1)
 
     suitability = {
@@ -640,8 +638,7 @@ def run_single_scenario(
         for n in N
     }
 
-    # Assignment value:
-    # v_(r,n) = sum_c b_(n,c) + s_(r,n) + 1
+    # Assignment value: v_{r,n} = sum_{c in C} b_{n,c} + s_{r,n} + 1.
     assignment_value = {
         (r, n): (
             sum(
@@ -657,7 +654,6 @@ def run_single_scenario(
 
     M_H = solve_subproblem_1(
         R,
-        N,
         available_pairs,
         H,
     )
@@ -680,7 +676,7 @@ def run_single_scenario(
             "status": "infeasible",
             "quantity": None,
             "quality": None,
-            "weighted": None,
+            "aggregate_value": None,
         }
 
     qty = solve_quantity_formulation(
@@ -706,7 +702,7 @@ def run_single_scenario(
             "status": "infeasible",
             "quantity": None,
             "quality": None,
-            "weighted": None,
+            "aggregate_value": None,
         }
 
     qual = solve_quality_formulation(
@@ -733,10 +729,10 @@ def run_single_scenario(
             "status": "infeasible",
             "quantity": qty,
             "quality": None,
-            "weighted": None,
+            "aggregate_value": None,
         }
 
-    weighted = solve_weighted_formulation(
+    aggregate_value = solve_aggregate_value_formulation(
         R,
         N,
         available_pairs,
@@ -746,7 +742,7 @@ def run_single_scenario(
         class_nodes,
     )
 
-    if weighted is None:
+    if aggregate_value is None:
         return {
             "seed": seed,
             "network": network,
@@ -756,7 +752,7 @@ def run_single_scenario(
             "status": "infeasible",
             "quantity": qty,
             "quality": qual,
-            "weighted": None,
+            "aggregate_value": None,
         }
 
     return {
@@ -768,7 +764,7 @@ def run_single_scenario(
         "status": "optimal",
         "quantity": qty,
         "quality": qual,
-        "weighted": weighted,
+        "aggregate_value": aggregate_value,
     }
 
 # =========================================================

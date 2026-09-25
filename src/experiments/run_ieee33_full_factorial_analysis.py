@@ -136,16 +136,16 @@ def run_full_factorial_experiment():
                                 ),
 
                             "w_assignments":
-                                res["weighted"]["assignments"],
+                                res["aggregate_value"]["assignments"],
                             "w_assignment_value":
-                                res["weighted"]["assignment_value"],
+                                res["aggregate_value"]["assignment_value"],
                             "w_highest_priority":
-                                res["weighted"][
+                                res["aggregate_value"][
                                     "highest_priority_covered"
                                 ],
                             "w_secondary_priority":
                                 average_secondary_priority_assignments(
-                                    res["weighted"]
+                                    res["aggregate_value"]
                                 ),
 
                             "qty_time":
@@ -153,7 +153,7 @@ def run_full_factorial_experiment():
                             "qual_time":
                                 res["quality"]["solve_time"],
                             "w_time":
-                                res["weighted"]["solve_time"],
+                                res["aggregate_value"]["solve_time"],
                         }
                     )
 
