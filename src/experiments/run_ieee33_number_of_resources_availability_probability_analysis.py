@@ -20,7 +20,7 @@ DATA_DIR = BASE_DIR / "outputs" / "data"
 # =========================================================
 
 def average_secondary_priority_assignments(formulation_result):
-    """Return the average number of assignments across secondary priority classes."""
+    """Return the average assignments per secondary priority class."""
 
     secondary_priority_covered = formulation_result[
         "secondary_priority_covered"
@@ -60,6 +60,7 @@ def run_number_of_resources_availability_probability_experiment():
                 try:
                     res = run_single_scenario(
                         seed=seed,
+                        network="33",
                         num_resources=num_resources,
                         availability_prob=availability_prob,
                         suitability_prob=suitability_prob,
