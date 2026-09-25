@@ -54,9 +54,9 @@ def save_highest_priority_heatmaps(summary):
     """
 
     formulation_specs = [
-        ("qty_highest_priority", "(a) QNTF"),
-        ("qual_highest_priority", "(b) QLTF"),
-        ("w_highest_priority", "(c) AVF"),
+        ("quantity_highest_priority", "(a) QNTF"),
+        ("quality_highest_priority", "(b) QLTF"),
+        ("aggregate_value_highest_priority", "(c) AVF"),
     ]
 
     fig, axes = plt.subplots(
