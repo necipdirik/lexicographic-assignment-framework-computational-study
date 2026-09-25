@@ -31,10 +31,7 @@ DATA_DIR = BASE_DIR / "outputs" / "data"
 # =========================================================
 
 def classes_overlap(C, class_nodes):
-    """
-    Return True if any pair of secondary-priority
-    classes overlaps.
-    """
+    """Return whether any two secondary priority classes overlap."""
 
     for i, c1 in enumerate(C):
         for c2 in C[i + 1:]:
@@ -159,10 +156,7 @@ def solve_quantity_lp_relaxation(
     M_c,
     penalty_weights,
 ):
-    """
-    Solve the LP relaxation of the Quantity
-    formulation.
-    """
+    """Solve the LP relaxation of the Quantity Formulation."""
 
     model = gp.Model(
         "quantity_lp_relaxation"
@@ -269,10 +263,7 @@ def solve_quality_lp_relaxation(
     maximum_assignments,
     penalty_weights,
 ):
-    """
-    Solve the LP relaxation of the Quality
-    formulation.
-    """
+    """Solve the LP relaxation of the Quality Formulation."""
 
     model = gp.Model(
         "quality_lp_relaxation"
@@ -387,8 +378,9 @@ def run_lp_relaxation_scenario(
     penalty_weight=0.5,
 ):
     """
-    Run the Quantity and Quality LP relaxations for
-    one generated scenario.
+    Generate one scenario, solve its integer preliminary problems
+    and Quantity Formulation, then solve the Quantity and Quality
+    LP relaxations.
     """
 
     if network == "33":
@@ -462,11 +454,8 @@ def run_lp_relaxation_scenario(
         return None
 
     # -----------------------------------------------------
-    # Solve the ORIGINAL INTEGER Quantity formulation.
-    #
-    # The resulting assignment count is the same quantity
-    # passed to the Quality formulation in the original
-    # sequential framework.
+    # Solve the integer Quantity Formulation.
+    # Its assignment count is used by the Quality LP relaxation.
     # -----------------------------------------------------
 
     integer_quantity = (
