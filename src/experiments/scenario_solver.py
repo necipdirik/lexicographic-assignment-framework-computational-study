@@ -679,7 +679,7 @@ def run_single_scenario(
             "aggregate_value": None,
         }
 
-    qty = solve_quantity_formulation(
+    quantity = solve_quantity_formulation(
         R,
         N,
         available_pairs,
@@ -692,7 +692,7 @@ def run_single_scenario(
         penalty_weights,
     )
 
-    if qty is None:
+    if quantity is None:
         return {
             "seed": seed,
             "network": network,
@@ -705,7 +705,7 @@ def run_single_scenario(
             "aggregate_value": None,
         }
 
-    qual = solve_quality_formulation(
+    quality = solve_quality_formulation(
         R,
         N,
         available_pairs,
@@ -715,11 +715,11 @@ def run_single_scenario(
         class_nodes,
         M_H,
         M_c,
-        qty["assignments"],
+        quantity["assignments"],
         penalty_weights,
     )
 
-    if qual is None:
+    if quality is None:
         return {
             "seed": seed,
             "network": network,
@@ -727,7 +727,7 @@ def run_single_scenario(
             "availability_prob": availability_prob,
             "suitability_prob": suitability_prob,
             "status": "infeasible",
-            "quantity": qty,
+            "quantity": quantity,
             "quality": None,
             "aggregate_value": None,
         }
@@ -750,8 +750,8 @@ def run_single_scenario(
             "availability_prob": availability_prob,
             "suitability_prob": suitability_prob,
             "status": "infeasible",
-            "quantity": qty,
-            "quality": qual,
+            "quantity": quantity,
+            "quality": quality,
             "aggregate_value": None,
         }
 
@@ -762,8 +762,8 @@ def run_single_scenario(
         "availability_prob": availability_prob,
         "suitability_prob": suitability_prob,
         "status": "optimal",
-        "quantity": qty,
-        "quality": qual,
+        "quantity": quantity,
+        "quality": quality,
         "aggregate_value": aggregate_value,
     }
 
