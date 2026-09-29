@@ -4,34 +4,34 @@ SETS:
     RES / r1, r2, r3 /;
     NODE / n1, n2, n3 /;
 
-    RESNODE(RES,NODE): D, E;
-    NODEATTR(NODE): AVUL;
+    RESNODE(RES,NODE): A, X;
+    NODEATTR(NODE): BVUL;
 ENDSETS
 
 DATA:
-    D =
+    A =
     1 1 0
     1 0 1
     0 1 1;
 
-    AVUL =
+    BVUL =
     0
     1
     1;
 ENDDATA
 
-MAX = @SUM(RESNODE(i,j): AVUL(j) * D(i,j) * E(i,j));
+MAX = @SUM(RESNODE(i,j): BVUL(j) * A(i,j) * X(i,j));
 
 @FOR(NODE(j):
-    @SUM(RES(i): D(i,j) * E(i,j)) <= 1
+    @SUM(RES(i): A(i,j) * X(i,j)) <= 1
 );
 
 @FOR(RES(i):
-    @SUM(NODE(j): D(i,j) * E(i,j)) <= 1
+    @SUM(NODE(j): A(i,j) * X(i,j)) <= 1
 );
 
 @FOR(RESNODE(i,j):
-    @BIN(E(i,j))
+    @BIN(X(i,j))
 );
 
 END

@@ -5,7 +5,7 @@ sys.path.append(str(Path(__file__).resolve().parents[2]))
 
 from gurobipy import GRB, Model
 
-from verification.gurobi.verification_gurobi_instance import (
+from verification.gurobi.verification_gurobi_instance_no_available_assignments import (
     R,
     N,
     C,

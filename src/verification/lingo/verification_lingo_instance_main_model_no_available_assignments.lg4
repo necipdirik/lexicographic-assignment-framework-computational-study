@@ -10,9 +10,9 @@ ENDSETS
 
 DATA:
     A =
-    1 1 0
-    1 0 1
-    0 1 1;
+    0 0 0
+    0 0 0
+    0 0 0;
 
     s =
     1 0 0
@@ -52,14 +52,14 @@ MAX =
     @SUM(NODE(j): A(i,j) * X(i,j)) <= 1
 );
 
-! M_H = 1;
-@SUM(RESNODE(i,j): BHP(j) * A(i,j) * X(i,j)) >= 1;
+! M_H = 0;
+@SUM(RESNODE(i,j): BHP(j) * A(i,j) * X(i,j)) >= 0;
 
-! M_critical = 1;
-@SUM(RESNODE(i,j): BCRIT(j) * A(i,j) * X(i,j)) + SCRIT >= 1;
+! M_critical = 0;
+@SUM(RESNODE(i,j): BCRIT(j) * A(i,j) * X(i,j)) + SCRIT >= 0;
 
-! M_vulnerable = 2;
-@SUM(RESNODE(i,j): BVUL(j) * A(i,j) * X(i,j)) + SVUL >= 2;
+! M_vulnerable = 0;
+@SUM(RESNODE(i,j): BVUL(j) * A(i,j) * X(i,j)) + SVUL >= 0;
 
 @FOR(RESNODE(i,j):
     @BIN(X(i,j))

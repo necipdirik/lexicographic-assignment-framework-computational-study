@@ -10,109 +10,119 @@ from verification.gurobi.verification_gurobi_instance_scarcity import (
     N,
     C,
     H,
-    D,
-    P,
     a,
+    s,
+    b,
     w,
 )
 
+
 def value(r, n):
-    return sum(a[(n, c)] for c in C) + P[(r, n)] + 1
+    return sum(b[(n, c)] for c in C) + s[(r, n)] + 1
 
 
 model = Model("verification_instance")
 
-E = model.addVars(R, N, vtype=GRB.BINARY, name="E")
+x = model.addVars(R, N, vtype=GRB.BINARY, name="x")
 epsilon = model.addVars(C, lb=0, vtype=GRB.CONTINUOUS, name="epsilon")
 
 # =========================================================
 # SUB-PROBLEM 1
 # =========================================================
-model_f = Model("subproblem_1_F")
+model_h = Model("subproblem_1_M_H")
 
-E_f = model_f.addVars(R, H, vtype=GRB.BINARY, name="E")
+x_h = model_h.addVars(R, H, vtype=GRB.BINARY, name="x")
 
-model_f.setObjective(
-    sum(D[(r, n)] * E_f[r, n] for r in R for n in H),
+model_h.setObjective(
+    sum(a[(r, n)] * x_h[r, n] for r in R for n in H),
     GRB.MAXIMIZE,
 )
 
 for n in H:
-    model_f.addConstr(sum(D[(r, n)] * E_f[r, n] for r in R) <= 1)
+    model_h.addConstr(sum(a[(r, n)] * x_h[r, n] for r in R) <= 1)
 
 for r in R:
-    model_f.addConstr(sum(D[(r, n)] * E_f[r, n] for n in H) <= 1)
+    model_h.addConstr(sum(a[(r, n)] * x_h[r, n] for n in H) <= 1)
 
-model_f.optimize()
+model_h.optimize()
 
-F = int(round(model_f.ObjVal))
+if model_h.Status != GRB.OPTIMAL:
+    raise RuntimeError(f"Sub1F status: {model_h.Status}")
+
+M_H = int(round(model_h.ObjVal))
 
 # =========================================================
 # SUB-PROBLEM 2
 # =========================================================
-T = {}
+M_c = {}
 
 for c in C:
-    model_t = Model(f"subproblem_2_{c}")
+    model_c = Model(f"subproblem_2_{c}")
 
-    E_t = model_t.addVars(R, N, vtype=GRB.BINARY, name="E")
+    x_c = model_c.addVars(R, N, vtype=GRB.BINARY, name="x")
 
-    model_t.setObjective(
-        sum(a[(n, c)] * D[(r, n)] * E_t[r, n] for r in R for n in N),
+    model_c.setObjective(
+        sum(b[(n, c)] * a[(r, n)] * x_c[r, n] for r in R for n in N),
         GRB.MAXIMIZE,
     )
 
     for n in N:
-        model_t.addConstr(sum(D[(r, n)] * E_t[r, n] for r in R) <= 1)
+        model_c.addConstr(sum(a[(r, n)] * x_c[r, n] for r in R) <= 1)
 
     for r in R:
-        model_t.addConstr(sum(D[(r, n)] * E_t[r, n] for n in N) <= 1)
+        model_c.addConstr(sum(a[(r, n)] * x_c[r, n] for n in N) <= 1)
 
-    model_t.optimize()
+    model_c.optimize()
 
-    T[c] = int(round(model_t.ObjVal))
+    if model_c.Status != GRB.OPTIMAL:
+        raise RuntimeError(f"Sub2F status for {c}: {model_c.Status}")
+
+    M_c[c] = int(round(model_c.ObjVal))
 
 # =========================================================
 # MAIN PROBLEM
 # =========================================================
 model.setObjective(
-    sum(value(r, n) * D[(r, n)] * E[r, n] for r in R for n in N)
+    sum(value(r, n) * a[(r, n)] * x[r, n] for r in R for n in N)
     - sum(w[c] * epsilon[c] for c in C),
     GRB.MAXIMIZE,
 )
 
 for n in N:
-    model.addConstr(sum(D[(r, n)] * E[r, n] for r in R) <= 1)
+    model.addConstr(sum(a[(r, n)] * x[r, n] for r in R) <= 1)
 
 for r in R:
-    model.addConstr(sum(D[(r, n)] * E[r, n] for n in N) <= 1)
+    model.addConstr(sum(a[(r, n)] * x[r, n] for n in N) <= 1)
 
 model.addConstr(
-    sum(D[(r, n)] * E[r, n] for r in R for n in H) >= F
+    sum(a[(r, n)] * x[r, n] for r in R for n in H) >= M_H
 )
 
 for c in C:
     model.addConstr(
         sum(
-            a[(n, c)] * D[(r, n)] * E[r, n]
+            b[(n, c)] * a[(r, n)] * x[r, n]
             for r in R
             for n in N
         )
         + epsilon[c]
-        >= T[c]
+        >= M_c[c]
     )
 
 model.optimize()
 
+if model.Status != GRB.OPTIMAL:
+    raise RuntimeError(f"MPF status: {model.Status}")
+
 print("\n=== VERIFICATION RESULTS ===")
-print(f"F = {F}")
-print(f"T = {T}")
+print(f"M_H = {M_H}")
+print(f"M_c = {M_c}")
 print(f"Main objective = {model.ObjVal}")
 
 print("\nAssignments:")
 for r in R:
     for n in N:
-        if E[r, n].X > 0.5:
+        if a[(r, n)] == 1 and x[r, n].X > 0.5:
             print(f"{r} -> {n}")
 
 print("\nSlack values:")
