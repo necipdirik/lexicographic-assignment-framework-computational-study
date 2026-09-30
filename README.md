@@ -68,6 +68,15 @@ The computational experiments evaluate the assignment formulations under variati
 
 The experiments include one-factor, two-factor, and full-factorial analyses. Fixed pseudo-random seeds are used for scenario generation to support reproducibility.
 
+## Verification
+
+The verification includes two complementary checks:
+
+* comparison of LINGO and Gurobi results on small reference instances,
+* direct verification of the experiment functions by comparing their results with exhaustive enumeration on small instances.
+
+The second check covers the sub-problem targets, objective values, assignment feasibility, priority coverage, and slack values.
+
 ## Outputs
 
 Experimental results are stored in:
@@ -75,7 +84,7 @@ Experimental results are stored in:
 ```text
 outputs/data/
 ```
-
+z
 Figures generated from the experimental results are stored in:
 
 ```text
