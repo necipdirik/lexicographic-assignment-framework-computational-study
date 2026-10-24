@@ -1,0 +1,71 @@
+MODEL:
+
+SETS:
+    RES / r1, r2, r3 /;
+    NODE / n1, n2, n3 /;
+
+    RESNODE(RES,NODE): A, X, s, V;
+    NODEATTR(NODE): BHP, BCRIT, BVUL;
+ENDSETS
+
+DATA:
+    A =
+    1 1 0
+    1 0 1
+    0 1 1;
+
+    s =
+    1 0 0
+    0 0 1
+    0 1 0;
+
+    BHP =
+    1
+    0
+    0;
+
+    BCRIT =
+    1
+    0
+    0;
+
+    BVUL =
+    0
+    1
+    1;
+ENDDATA
+
+@FOR(RESNODE(i,j):
+    V(i,j) = BCRIT(j) + BVUL(j) + s(i,j) + 1
+);
+
+MAX =
+    @SUM(RESNODE(i,j): V(i,j) * A(i,j) * X(i,j))
+    - 2 * SCRIT
+    - 1 * SVUL;
+
+@FOR(NODE(j):
+    @SUM(RES(i): A(i,j) * X(i,j)) <= 1
+);
+
+@FOR(RES(i):
+    @SUM(NODE(j): A(i,j) * X(i,j)) <= 1
+);
+
+! M_H = 1;
+@SUM(RESNODE(i,j): BHP(j) * A(i,j) * X(i,j)) >= 1;
+
+! M_critical = 1;
+@SUM(RESNODE(i,j): BCRIT(j) * A(i,j) * X(i,j)) + SCRIT >= 1;
+
+! M_vulnerable = 2;
+@SUM(RESNODE(i,j): BVUL(j) * A(i,j) * X(i,j)) + SVUL >= 2;
+
+@FOR(RESNODE(i,j):
+    @BIN(X(i,j))
+);
+
+SCRIT >= 0;
+SVUL >= 0;
+
+END

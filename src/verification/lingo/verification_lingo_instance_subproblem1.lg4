@@ -1,0 +1,30 @@
+MODEL:
+
+SETS:
+    RES / r1, r2, r3 /;
+    HIGH / n1 /;
+    RESHIGH(RES,HIGH): A, X;
+ENDSETS
+
+DATA:
+    A =
+    1
+    1
+    0;
+ENDDATA
+
+MAX = @SUM(RESHIGH(i,j): A(i,j) * X(i,j));
+
+@FOR(HIGH(j):
+    @SUM(RES(i): A(i,j) * X(i,j)) <= 1
+);
+
+@FOR(RES(i):
+    @SUM(HIGH(j): A(i,j) * X(i,j)) <= 1
+);
+
+@FOR(RESHIGH(i,j):
+    @BIN(X(i,j))
+);
+
+END
